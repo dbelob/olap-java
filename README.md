@@ -1,2 +1,3 @@
-# olap-java
-OLAP and Java
+# OLAP and Java
+
+OLAP and Java examples
