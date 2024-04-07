@@ -10,7 +10,7 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <project.build.javaVersion>17</project.build.javaVersion>
+        <project.build.javaVersion>21</project.build.javaVersion>
 
         <compiler.plugin.version>3.10.1</compiler.plugin.version>
     </properties>

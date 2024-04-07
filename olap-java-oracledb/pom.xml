@@ -20,6 +20,7 @@
 
         <ojdbc11.version>23.3.0.23.09</ojdbc11.version>
         <oracle-olapi.version>11.1.0.6.0</oracle-olapi.version>
+        <xmlparserv2.version>23.3.0.23.09</xmlparserv2.version>
     </properties>
 
     <build>
@@ -48,6 +49,11 @@
             <groupId>com.oracle.olap</groupId>
             <artifactId>oracle-olapi</artifactId>
             <version>${oracle-olapi.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.oracle.database.xml</groupId>
+            <artifactId>xmlparserv2</artifactId>
+            <version>${xmlparserv2.version}</version>
         </dependency>
     </dependencies>
 </project>
