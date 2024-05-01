@@ -23,22 +23,6 @@
         <xmlparserv2.version>23.3.0.23.09</xmlparserv2.version>
     </properties>
 
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>${compiler.plugin.version}</version>
-                <configuration>
-                    <source>${project.build.javaVersion}</source>
-                    <target>${project.build.javaVersion}</target>
-                    <encoding>${project.build.sourceEncoding}</encoding>
-                    <parameters>true</parameters>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
-
     <dependencies>
         <dependency>
             <groupId>com.oracle.database.jdbc</groupId>

@@ -12,7 +12,9 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.build.javaVersion>21</project.build.javaVersion>
 
-        <compiler.plugin.version>3.10.1</compiler.plugin.version>
+        <maven-compiler-plugin.version>3.10.1</maven-compiler-plugin.version>
+
+        <logback.version>1.5.6</logback.version>
     </properties>
 
     <modules>
@@ -26,13 +28,23 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>${compiler.plugin.version}</version>
+                <version>${maven-compiler-plugin.version}</version>
                 <configuration>
                     <source>${project.build.javaVersion}</source>
                     <target>${project.build.javaVersion}</target>
                     <encoding>${project.build.sourceEncoding}</encoding>
+                    <parameters>true</parameters>
                 </configuration>
             </plugin>
         </plugins>
     </build>
+
+    <dependencies>
+        <!-- Logging -->
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>${logback.version}</version>
+        </dependency>
+    </dependencies>
 </project>
