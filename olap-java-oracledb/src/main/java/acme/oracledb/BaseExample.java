@@ -43,11 +43,11 @@ public abstract class BaseExample {
 
         if (createContext) {
             // Create a Context11g object.
-            // println("Creating a Context11g object to make the connection.");
+            log.info("Creating a Context object to make the connection.");
             createContext(properties);
         } else {
             // Do not create a Context11g object.
-            // println("Connecting without creating a Context11g object.");
+            log.info("Connecting without creating a Context object.");
         }
     }
 
@@ -64,7 +64,9 @@ public abstract class BaseExample {
 
     protected void closeContext() {
         try {
-            context.close();
+            if (context != null) {
+                context.close();
+            }
         } catch (Exception e) {
             log.error("Context connection error", e);
         } finally {
@@ -88,6 +90,7 @@ public abstract class BaseExample {
 
     final void setUpCursorPrintWriter(Properties properties) throws IOException {
         String logFile = properties.getProperty(KEY_LOGFILE);
+
         if (null == logFile) {
             cpw = CursorPrintWriter.getStandardOutput(); // default to Stdout
         } else {
