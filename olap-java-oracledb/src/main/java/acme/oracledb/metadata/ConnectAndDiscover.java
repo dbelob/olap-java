@@ -27,7 +27,7 @@ public class ConnectAndDiscover extends BaseExample {
 
         try {
             // Create an OracleConnection using the command-line arguments that
-            // the BaseExample11g.convertToProperties method stored in a
+            // the BaseExample.convertToProperties method stored in a
             // Properties object.
             OracleDataSource ods = new OracleDataSource();
 
@@ -56,7 +56,7 @@ public class ConnectAndDiscover extends BaseExample {
         // and the connection.
 
         log.info("Creating an MdmMetadataProvider.");
-        MdmMetadataProvider mp = null;
+        MdmMetadataProvider mp;
 
         try {
             mp = dp.getMdmMetadataProvider();
@@ -85,14 +85,18 @@ public class ConnectAndDiscover extends BaseExample {
             log.info("Getting the Dimensions and Measures of an MdmCube.");
             getCubeObjects(mdmGlobalSchema);
 
-            //TODO: implement
+            log.info("Getting the Hierarchies and Levels of a Dimension.");
+            getHierarchiesAndLevels(mdmGlobalSchema);
+
+            log.info("Getting the MdmAttribute Objects of an MdmPrimaryDimension.");
+            getAttributes(mdmGlobalSchema);
         } catch (Exception e) {
-            log.error("Cannot get the MDM metadata provider. ", e);
+            log.error("Cannot get the MDM metadata provider.", e);
         }
 
         // Now close the data provider and the connection.
         log.info("Closing the DataProvider.");
-        dp.close();     // dp is the DataProvider
+        dp.close();
 
         log.info("Closing the Connection.");
         try {
@@ -100,7 +104,7 @@ public class ConnectAndDiscover extends BaseExample {
                 conn.close();
             }
         } catch (SQLException e) {
-            log.info("Cannot close the connection. " + e);
+            log.info("Cannot close the connection.", e);
         }
     }
 
@@ -183,6 +187,43 @@ public class ConnectAndDiscover extends BaseExample {
 
         List<MdmMeasure> measList = mdmUnitsCube.getMeasures();
         getNames(measList, "measures", objName);
+    }
+
+    @SuppressWarnings("unchecked")
+    private void getHierarchiesAndLevels(MdmDatabaseSchema mdmGlobalSchema) {
+        MdmPrimaryDimension mdmCustomerDimension = (MdmPrimaryDimension) mdmGlobalSchema.getTopLevelObject("CUSTOMER");
+        List<MdmHierarchy> hierList = mdmCustomerDimension.getHierarchies();
+
+        log.info("The hierarchies of the {} dimension are:", mdmCustomerDimension.getName());
+
+        for (MdmHierarchy mdmHierarchy : hierList) {
+            log.info("   {}", mdmHierarchy.getName());
+
+            if (mdmHierarchy instanceof MdmLevelHierarchy mdmLevelHierarchy) {
+                List<MdmHierarchyLevel> hierLevelList = mdmLevelHierarchy.getHierarchyLevels();
+
+                log.info("      The levels of the hierarchy are:");
+
+                for (MdmHierarchyLevel mdmHierLevel : hierLevelList) {
+                    log.info("      {}", mdmHierLevel.getName());
+                }
+            }
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private void getAttributes(MdmDatabaseSchema mdmGlobalSchema) {
+        MdmTimeDimension mdmTimeDimension = (MdmTimeDimension) mdmGlobalSchema.getTopLevelObject("TIME");
+        List<MdmAttribute> attrList = mdmTimeDimension.getAttributes();
+
+        log.info("The MdmAttribute objects of {} are:", mdmTimeDimension.getName());
+
+        for (MdmAttribute mdmAttribute : attrList) {
+            log.info("   {}", mdmAttribute.getName());
+        }
+
+        MdmAttribute mdmParentAttribute = mdmTimeDimension.getParentAttribute();
+        log.info("The parent attribute is {}.", mdmParentAttribute.getName());
     }
 
     public void execute(String[] args) {
