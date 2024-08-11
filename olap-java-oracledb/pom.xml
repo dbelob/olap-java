@@ -39,5 +39,10 @@
             <artifactId>xmlparserv2</artifactId>
             <version>${xmlparserv2.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.glassfish.corba</groupId>
+            <artifactId>glassfish-corba-orb</artifactId>
+            <version>${glassfish-corba-orb.version}</version>
+        </dependency>
     </dependencies>
 </project>

@@ -1,5 +1,7 @@
 package acme.oracledb;
 
+import oracle.olapi.data.source.DataProvider;
+import oracle.olapi.metadata.mdm.MdmMetadataProvider;
 import org.slf4j.LoggerFactory;
 
 import java.io.FileWriter;
@@ -74,6 +76,10 @@ public abstract class BaseExample {
         }
     }
 
+    protected Context getContext() {
+        return context;
+    }
+
     public void execute(String[] args) {
         execute(convertToProperties(args));
     }
@@ -128,5 +134,13 @@ public abstract class BaseExample {
         }
 
         return props;
+    }
+
+    protected DataProvider getDataProvider() {
+        return context.getDataProvider();
+    }
+
+    protected MdmMetadataProvider getMdmMetadataProvider() {
+        return context.getMetadataProvider();
     }
 }
