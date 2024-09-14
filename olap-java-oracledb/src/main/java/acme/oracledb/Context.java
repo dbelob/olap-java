@@ -553,8 +553,7 @@ public class Context {
      *                      unique or local dimension element values.
      */
     private void _displayResult(Source source, boolean displayLocVal) {
-        CursorManager cursorManager =
-                dp.createCursorManager(source);
+        CursorManager cursorManager = dp.createCursorManager(source);
         Cursor cursor = cursorManager.createCursor();
 
         cpw.printCursor(cursor, displayLocVal);
