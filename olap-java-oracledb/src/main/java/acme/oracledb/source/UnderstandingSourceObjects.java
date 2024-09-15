@@ -2,6 +2,7 @@ package acme.oracledb.source;
 
 import acme.oracledb.BaseExample;
 import oracle.olapi.data.source.DataProvider;
+import oracle.olapi.data.source.NumberSource;
 import oracle.olapi.data.source.Source;
 import oracle.olapi.data.source.StringSource;
 import oracle.olapi.metadata.mdm.*;
@@ -49,7 +50,29 @@ public class UnderstandingSourceObjects extends BaseExample {
         // The "A Simple Join That Produces a Source with Two Outputs" example.
         List<Source> lettersWithSelNames_Colors = simpleJoinProducingSourceWithTwoOutputs();
 
-        //TODO: implement
+        // The "A Simple Join That Hides An Output" example.
+        simpleJoinHidingAnOutput(lettersWithSelNames_Colors);
+
+        // The "Getting an Attribute for a Dimension Member" example.
+        gettingAttributeForDimMember();
+
+        // The "Getting Measure Values" example.
+        gettingMeasureValues();
+
+        // The "Using the value Method to Relate a Source to Itself" exrample.
+        usingValueToRelatingSourceToItself();
+
+        // The "Using the value Method to Select Elements of a Source" example.
+        usingValueToSelectElements();
+
+        // The "Using Derived Source Objects to Select Measure Values" example.
+//        usingDerivedSourceObjectsToSelectMeasureValues();
+
+        // The "Extracting Elements of a Source" example.
+//        extractingElementsOfASource();
+
+        // The "Using a Parameterized Source to Change a Dimension Selection" example.
+//        usingAParameterizedSource();
     }
 
     public void gettingTheMembersOfADimension() {
@@ -167,6 +190,109 @@ public class UnderstandingSourceObjects extends BaseExample {
         lettersWithSelNames_Colors.add(colors);
 
         return lettersWithSelNames_Colors;
+    }
+
+    public void simpleJoinHidingAnOutput(List<Source> lettersWithSelNames_Colors) {
+        log.info("A Simple Join That Hides An Output");
+
+        Source lettersWithSelectedNames = lettersWithSelNames_Colors.get(0);
+        Source colors = lettersWithSelNames_Colors.get(1);
+
+        // The code that appears in the example in
+        // Oracle OLAP Java API Developer's Guide begins here.
+
+        Source lettersWithSelectedNamesAndHiddenColors = lettersWithSelectedNames.joinHidden(colors);
+
+        Source base = lettersWithSelectedNames;
+        Source joined = colors;
+        Source result = base.join(joined,
+                dp.getEmptySource(),
+                Source.COMPARISON_RULE_REMOVE,
+                false);
+
+        getContext().commit();
+        getContext().displayResult(lettersWithSelectedNamesAndHiddenColors);
+
+        log.info("The result of the same query using the full join signature of the joinHidden method.");
+        getContext().displayResult(result);
+    }
+
+    public void gettingAttributeForDimMember() {
+        log.info("Getting an Attribute for a Dimension Member");
+
+        MdmStandardDimension mdmChanDim = mdmDBSchema.findOrCreateStandardDimension("CHANNEL");
+        Source chanDim = mdmChanDim.getSource();
+        Source locValAttr = mdmChanDim.getLocalValueAttribute().getSource();
+        Source dimMembersWithLocalValue = locValAttr.join(chanDim);
+
+        getContext().commit();
+        getContext().displayResult(dimMembersWithLocalValue);
+    }
+
+    public void gettingMeasureValues() {
+        log.info("Getting Measure Values");
+
+        MdmCube mdmPriceCube = mdmDBSchema.findOrCreateCube("PRICE_CUBE");
+        MdmBaseMeasure mdmUnitPrice = mdmPriceCube.findOrCreateBaseMeasure("UNIT_PRICE");
+
+        MdmStandardDimension mdmProdDim = mdmDBSchema.findOrCreateStandardDimension("PRODUCT");
+        MdmTimeDimension mdmTimeDim = mdmDBSchema.findOrCreateTimeDimension("TIME");
+
+        Source prodDim = mdmProdDim.getSource();
+        Source timeDim = mdmTimeDim.getSource();
+        Source unitPrice = mdmUnitPrice.getSource();
+
+        Source pricesByProductAndTime = unitPrice.join(prodDim).join(timeDim);
+
+//        log.info("pricesByProductAndTime is ");
+//        getContext().displayResult(pricesByProductAndTime);
+
+        NumberSource numPricesByProductAndTime = pricesByProductAndTime.count();
+
+        getContext().commit();
+        log.info("The number of elements in the numPricesByProductAndTime Source is ");
+        getContext().displayResult(numPricesByProductAndTime);
+    }
+
+    public void usingValueToRelatingSourceToItself() {
+        log.info("Using the value Method to Relate a Source to Itself");
+
+        Source letters = dp.createListSource(new String[]{"A", "B", "C"});
+        Source lettersValue = letters.value();
+        Source lettersByLettersValue = letters.join(lettersValue);
+
+        getContext().commit();
+        getContext().displayResult(lettersByLettersValue);
+    }
+
+    public void usingValueToSelectElements() {
+        log.info("Using the value Method to Select Elements of a Source");
+
+        MdmStandardDimension mdmProdDim = mdmDBSchema.findOrCreateStandardDimension("PRODUCT");
+        Source prodDim = mdmProdDim.getSource();
+
+//        log.info("prodDim is");
+//        getContext().displayResult(prodDim);
+
+        // The code that appears in the example in
+        // Oracle OLAP Java API Developer's Guide begins here.
+
+        Source productsToSelect = dp.createListSource(new String[]
+                {"PRIMARY::ITEM::ITEM_ENVY EXE",
+                        "PRIMARY::ITEM::ITEM_ENVY STD"});
+
+
+        Source selectedProducts = prodDim.join(prodDim.value(),
+                productsToSelect,
+                Source.COMPARISON_RULE_SELECT,
+                false); // Hide the output.
+
+        getContext().commit();
+
+        log.info("A Cursor for the productsToSelect Source has the following values.");
+        getContext().displayResult(productsToSelect);
+        log.info("A Cursor for the selectedProducts Source has the following values.");
+        getContext().displayResult(selectedProducts);
     }
 
     public static void main(String[] args) {

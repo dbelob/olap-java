@@ -1,10 +1,7 @@
 package acme.oracledb;
 
 import oracle.jdbc.pool.OracleDataSource;
-import oracle.olapi.data.cursor.CompoundCursor;
-import oracle.olapi.data.cursor.Cursor;
-import oracle.olapi.data.cursor.CursorManager;
-import oracle.olapi.data.cursor.ValueCursor;
+import oracle.olapi.data.cursor.*;
 import oracle.olapi.data.source.DataProvider;
 import oracle.olapi.data.source.FundamentalMetadataProvider;
 import oracle.olapi.data.source.Source;
@@ -553,13 +550,17 @@ public class Context {
      *                      unique or local dimension element values.
      */
     private void _displayResult(Source source, boolean displayLocVal) {
-        CursorManager cursorManager = dp.createCursorManager(source);
-        Cursor cursor = cursorManager.createCursor();
+        try {
+            CursorManager cursorManager = dp.createCursorManager(source);
+            Cursor cursor = cursorManager.createCursor();
 
-        cpw.printCursor(cursor, displayLocVal);
+            cpw.printCursor(cursor, displayLocVal);
 
-        // Close the CursorManager.
-        cursorManager.close();
+            // Close the CursorManager.
+            cursorManager.close();
+        } catch (NoDataAvailableException ex) {
+            println("No data available.");
+        }
     }
 
 
