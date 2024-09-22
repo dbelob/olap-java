@@ -66,7 +66,7 @@ public class UnderstandingSourceObjects extends BaseExample {
         usingValueToSelectElements();
 
         // The "Using Derived Source Objects to Select Measure Values" example.
-//        usingDerivedSourceObjectsToSelectMeasureValues();
+        usingDerivedSourceObjectsToSelectMeasureValues();
 
         // The "Extracting Elements of a Source" example.
 //        extractingElementsOfASource();
@@ -293,6 +293,58 @@ public class UnderstandingSourceObjects extends BaseExample {
         getContext().displayResult(productsToSelect);
         log.info("A Cursor for the selectedProducts Source has the following values.");
         getContext().displayResult(selectedProducts);
+    }
+
+    public void usingDerivedSourceObjectsToSelectMeasureValues() {
+        log.info("Using Derived Source Objects to Select Measure Values");
+
+        // Create lists of product and time dimension members.
+        Source productsToSelect = dp.createListSource(new String[]
+                {"PRIMARY::ITEM::ITEM_ENVY EXE",
+                        "PRIMARY::ITEM::ITEM_ENVY STD"});
+
+//        log.info("productsToSelect is");
+//        getContext().displayResult(productsToSelect);
+
+        Source timesToSelect = dp.createListSource(new String[]
+                {"CALENDAR_YEAR::MONTH::2000.01",
+                        "CALENDAR_YEAR::MONTH::2001.01",
+                        "CALENDAR_YEAR::MONTH::2002.01"});
+
+//        log.info("timesToSelect is");
+//        getContext().displayResult(timesToSelect);
+
+        // Get the PRICE_CUBE cube.
+        MdmCube mdmPriceCube = mdmDBSchema.findOrCreateCube("PRICE_CUBE");
+        // Get the UNIT_PRICE measure from the cube.
+        MdmBaseMeasure mdmUnitPrice = mdmPriceCube.findOrCreateBaseMeasure("UNIT_PRICE");
+        // Get the PRODUCT and TIME dimensions.
+        MdmStandardDimension mdmProdDim = mdmDBSchema.findOrCreateStandardDimension("PRODUCT");
+        MdmTimeDimension mdmTimeDim = mdmDBSchema.findOrCreateTimeDimension("TIME");
+
+        // Get the Source objects for the dimensions and the measure.
+        Source prodDim = mdmProdDim.getSource();
+        Source timeDim = mdmTimeDim.getSource();
+        Source unitPrice = mdmUnitPrice.getSource();
+
+        // Using the value method, derive Source objects that specify the selected
+        // dimension members.
+        Source selectedProducts = prodDim.join(prodDim.value(),
+                productsToSelect,
+                Source.COMPARISON_RULE_SELECT,
+                false);
+        Source selectedTimes = timeDim.join(timeDim.value(),
+                timesToSelect,
+                Source.COMPARISON_RULE_SELECT,
+                false);
+
+        // Derive a Source that specifies the unitPrice values for the selected
+        // products and times.
+        Source pricesForSelectedProductsAndTimes = unitPrice.join(selectedProducts)
+                .join(selectedTimes);
+
+        getContext().commit();
+        getContext().displayResult(pricesForSelectedProductsAndTimes);
     }
 
     public static void main(String[] args) {
