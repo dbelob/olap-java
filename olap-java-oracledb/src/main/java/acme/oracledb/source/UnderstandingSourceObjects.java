@@ -1,10 +1,10 @@
 package acme.oracledb.source;
 
 import acme.oracledb.BaseExample;
-import oracle.olapi.data.source.DataProvider;
-import oracle.olapi.data.source.NumberSource;
-import oracle.olapi.data.source.Source;
-import oracle.olapi.data.source.StringSource;
+import oracle.olapi.data.cursor.Cursor;
+import oracle.olapi.data.cursor.CursorManager;
+import oracle.olapi.data.cursor.NoDataAvailableException;
+import oracle.olapi.data.source.*;
 import oracle.olapi.metadata.mdm.*;
 import org.slf4j.LoggerFactory;
 
@@ -69,10 +69,10 @@ public class UnderstandingSourceObjects extends BaseExample {
         usingDerivedSourceObjectsToSelectMeasureValues();
 
         // The "Extracting Elements of a Source" example.
-//        extractingElementsOfASource();
+        extractingElementsOfASource();
 
         // The "Using a Parameterized Source to Change a Dimension Selection" example.
-//        usingAParameterizedSource();
+        usingAParameterizedSource();
     }
 
     public void gettingTheMembersOfADimension() {
@@ -271,8 +271,8 @@ public class UnderstandingSourceObjects extends BaseExample {
         MdmStandardDimension mdmProdDim = mdmDBSchema.findOrCreateStandardDimension("PRODUCT");
         Source prodDim = mdmProdDim.getSource();
 
-//        log.info("prodDim is");
-//        getContext().displayResult(prodDim);
+        log.info("prodDim is");
+        getContext().displayResult(prodDim);
 
         // The code that appears in the example in
         // Oracle OLAP Java API Developer's Guide begins here.
@@ -307,9 +307,9 @@ public class UnderstandingSourceObjects extends BaseExample {
 //        getContext().displayResult(productsToSelect);
 
         Source timesToSelect = dp.createListSource(new String[]
-                {"CALENDAR_YEAR::MONTH::2000.01",
-                        "CALENDAR_YEAR::MONTH::2001.01",
-                        "CALENDAR_YEAR::MONTH::2002.01"});
+                {"CALENDAR::MONTH::MONTH_2000.01",
+                        "CALENDAR::MONTH::MONTH_2001.01",
+                        "CALENDAR::MONTH::MONTH_2002.01"});
 
 //        log.info("timesToSelect is");
 //        getContext().displayResult(timesToSelect);
@@ -345,6 +345,72 @@ public class UnderstandingSourceObjects extends BaseExample {
 
         getContext().commit();
         getContext().displayResult(pricesForSelectedProductsAndTimes);
+    }
+
+    public void extractingElementsOfASource() {
+        log.info("Extracting Elements of a Source");
+
+        MdmStandardDimension mdmProdDim = mdmDBSchema.findOrCreateStandardDimension("PRODUCT");
+        StringSource prodDim = (StringSource) mdmProdDim.getSource();
+        Source productsToSelect = prodDim.selectValues(new String[]
+                {"PRIMARY::ITEM::ITEM_ENVY ABM",
+                        "PRIMARY::ITEM::ITEM_ENVY EXE",
+                        "PRIMARY::ITEM::ITEM_ENVY STD"});
+        Source moreProductsToSelect = prodDim.selectValues(new String[]
+                {"PRIMARY::ITEM::ITEM_SENT FIN",
+                        "PRIMARY::ITEM::ITEM_SENT MM",
+                        "PRIMARY::ITEM::ITEM_SENT STD"});
+        Source sourcesToCombine = dp.createListSource(new Source[]{productsToSelect, moreProductsToSelect});
+
+        Source sourcesToCombineWithAnInput = sourcesToCombine.extract();
+        Source combinedProducts = sourcesToCombineWithAnInput.joinHidden(sourcesToCombine);
+
+        getContext().commit();
+        getContext().displayResult(combinedProducts);
+    }
+
+    public void usingAParameterizedSource() {
+        try {
+            log.info("Using a Parameterized Source to Change a Dimension Selection");
+
+            // Get the PRODUCT dimension and the Source for it.
+            MdmStandardDimension mdmProdDim = mdmDBSchema.findOrCreateStandardDimension("PRODUCT");
+            StringSource prodDim = (StringSource) mdmProdDim.getSource();
+
+            // Create a parameterized Source that specifies a member of the dimension.
+            StringParameter prodParam = new StringParameter(dp, "PRIMARY::FAMILY::FAMILY_LTPC");
+            Source prodParamSrc = prodParam.createSource();
+            Source paramProdSel = prodDim.join(prodDim.value(), prodParamSrc);
+
+            // Get the local value attribute of the dimension.
+            Source locValAttr = mdmProdDim.getLocalValueAttribute().getSource();
+
+            // Get the local value for the specified dimension member.
+            Source dimMemberWithLocalValue = locValAttr.join(paramProdSel);
+
+            // Commit the current Transaction.
+            getContext().commit();
+
+            // Display the local value for the specified member.
+            log.info("The local value of the dimension member is:");
+
+            CursorManager cursorMngr = dp.createCursorManager(dimMemberWithLocalValue);
+            Cursor cursor = cursorMngr.createCursor();
+            getContext().displayCursor(cursor);
+
+            // Change the product parameter value.
+            prodParam.setValue("PRIMARY::FAMILY::FAMILY_DTPC");
+
+            // Reset the Cursor position to 1
+            cursor.setPosition(1);
+
+            // Display the local value for the member that is now specified.
+            log.info("The local value of the dimension member after changing the " +
+                    "Parameter value is:");
+            getContext().displayCursor(cursor);
+        } catch (NoDataAvailableException ex) {
+            log.info("No data available.");
+        }
     }
 
     public static void main(String[] args) {
